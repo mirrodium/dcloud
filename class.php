@@ -1,4 +1,4 @@
-<?namespace Dcloud\TASKs;
+<?namespace DCloud\TASKs;
 
 class Main{
 	public static function getUsers(){
@@ -51,11 +51,123 @@ class Main{
 		$ELEMENTs=\Bitrix\Iblock\ElementTable::getList(['filter'=>['IBLOCK_ID'=>$USERs["IBLOCK_ID"]]]);
 		while($ELEMENT=$ELEMENTs->Fetch()){
 			if($ITEM['ACTIVE']=='Y'){
-				$USERs["USERS"][]=['NAME'=>$ELEMENT['NAME'], 'LAST_NAME'=>$ELEMENT['LAST_NAME'], 'POST'=>$ELEMENT['POST']];
+				$curArr=['ID'=>$ELEMENT['ID'], 'NAME'=>$ELEMENT['NAME'], 'LAST_NAME'=>'', 'POST'=>''];
+				$PROPs=\CIBlockElement::GetProperty($USERs["IBLOCK_ID"], $ELEMENT['ID'], Array(), Array('CODE'=>'POST'));
+				$PROP=$PROPs->Fetch();
+				if(!empty($PROP['VALUE'])){
+					$curArr['POST']=$PROP['VALUE'];
+				}
+				$PROPs=\CIBlockElement::GetProperty($USERs["IBLOCK_ID"], $ELEMENT['ID'], Array(), Array('CODE'=>'LAST_NAME'));
+				$PROP=$PROPs->Fetch();
+				if(!empty($PROP['VALUE'])){
+					$curArr['LAST_NAME']=$PROP['VALUE'];
+				}
+				
+				$USERs["USERS"][]=$curArr;
 			}
 		}
 		
 		return $USERs;
+	}
+	
+	public static function addUser($PARAMs){
+		global $USER;
+		$MESSAGE="error";
+		
+		if(!empty($PARAMs['IBLOCK_ID']) and !empty($PARAMs['NAME']) and !empty($PARAMs['POST'])){
+			$ELEMENTs=new \CIBlockElement;
+			$FIELDS=[
+				'MODIFIED_BY'		=>	$USER->GetID(),
+				'IBLOCK_ID'			=>	$PARAMs["IBLOCK_ID"],
+				'NAME'				=>	$PARAMs['NAME'],
+				'PROPERTY_VALUES'	=> []
+			];
+			
+			$FIELD_IDs=\Bitrix\Iblock\PropertyTable::getList(['filter'=>['CODE'=>'POST', 'IBLOCK_ID'=>$PARAMs["IBLOCK_ID"]]]);
+			$FIELD_ID=$FIELD_IDs->Fetch();
+			if(!empty($FIELD_ID['ID'])){
+				$FIELDS['PROPERTY_VALUES'][$FIELD_ID['ID']]=$PARAMs['POST'];
+			}
+			
+			if(!empty($PARAMs['LAST_NAME'])){
+				$FIELD_IDs=\Bitrix\Iblock\PropertyTable::getList(['filter'=>['CODE'=>'LAST_NAME', 'IBLOCK_ID'=>$PARAMs["IBLOCK_ID"]]]);
+				$FIELD_ID=$FIELD_IDs->Fetch();
+				if(!empty($FIELD_ID['ID'])){
+					$FIELDS['PROPERTY_VALUES'][$FIELD_ID['ID']]=$PARAMs['LAST_NAME'];
+				}
+			}
+			
+			$ELEMENTs->Add($FIELDS);
+			if(empty($ELEMENTs->LAST_ERROR)){
+				$MESSAGE='success';
+			}
+		}else{
+			$MESSAGE="any params not found";
+		}
+		
+		return $MESSAGE;
+	}
+	
+	public static function editUser($PARAMs){
+		global $USER;
+		$MESSAGE="error";
+		
+		if(!empty($PARAMs['IBLOCK_ID']) and !empty($PARAMs['ID'])){
+			$ELEMENTs=new \CIBlockElement;
+			$FIELDS=[
+				'MODIFIED_BY'		=>	$USER->GetID(),
+				'IBLOCK_ID'			=>	$PARAMs["IBLOCK_ID"],
+				'NAME'				=>	$PARAMs['NAME'],
+				'PROPERTY_VALUES'	=> []
+			];
+			
+			$FIELD_IDs=\Bitrix\Iblock\PropertyTable::getList(['filter'=>['CODE'=>'POST', 'IBLOCK_ID'=>$PARAMs["IBLOCK_ID"]]]);
+			$FIELD_ID=$FIELD_IDs->Fetch();
+			if(!empty($FIELD_ID['ID'])){
+				$FIELDS['PROPERTY_VALUES'][$FIELD_ID['ID']]=$PARAMs['POST'];
+			}
+			
+			if(!empty($PARAMs['LAST_NAME'])){
+				$FIELD_IDs=\Bitrix\Iblock\PropertyTable::getList(['filter'=>['CODE'=>'LAST_NAME', 'IBLOCK_ID'=>$PARAMs["IBLOCK_ID"]]]);
+				$FIELD_ID=$FIELD_IDs->Fetch();
+				if(!empty($FIELD_ID['ID'])){
+					$FIELDS['PROPERTY_VALUES'][$FIELD_ID['ID']]=$PARAMs['LAST_NAME'];
+				}
+			}
+			
+			$ELEMENTs->Update($PARAMs['ID'], $FIELDS);
+			if(empty($ELEMENTs->LAST_ERROR)){
+				$MESSAGE='success';
+			}
+		}else{
+			$MESSAGE="any params not found";
+		}
+		
+		return $MESSAGE;
+	}
+	
+	public static function deleteUser($PARAMs){
+		global $DB;
+		$MESSAGE="error";
+		if(!empty($PARAMs['TASKS_IBLOCK_ID']) and !empty($PARAMs['IBLOCK_ID']) and !empty($PARAMs['ID'])){
+			$PROPs=\CIBlockElement::GetList(Array(), ['IBLOCK_ID'=>$PARAMs['TASKS_IBLOCK_ID'], 'PROPERTY_RESPONSIBLE'=>$PARAMs['ID']]);
+			$PROP=$PROPs->Fetch();
+			if($PROPs->selectedRowsCount()>0){
+				$MESSAGE="tasksFound";
+			}else{
+				if(\CIBlock::GetPermission($PARAMs['IBLOCK_ID'])>='W'){
+					$DB->StartTransaction();
+					if(!\CIBlockElement::Delete($PARAMs['ID'])){
+						$strWarning.='Error!';
+						$DB->Rollback();
+					}else
+						$DB->Commit();
+				}
+			}
+		}else{
+			$MESSAGE="any params not found";
+		}
+		return $MESSAGE;
 	}
 	
 	public static function getTasks($usersIBLOCK_ID){
@@ -98,7 +210,7 @@ class Main{
 						'NAME'				=>'Ответственный',
 						'IS_REQUIRED'		=>'Y',
 						'PROPERTY_TYPE'		=>'E',
-						'MULTIPLE'			=>'N',
+						'MULTIPLE'			=>'Y',
 						'LINK_IBLOCK_ID'	=>$usersIBLOCK_ID
 					]
 				];
@@ -144,7 +256,7 @@ class Main{
 		$ELEMENTs=\Bitrix\Iblock\ElementTable::getList(['filter'=>['IBLOCK_ID'=>$TASKs["IBLOCK_ID"]]]);
 		while($ELEMENT=$ELEMENTs->Fetch()){
 			if($ITEM['ACTIVE']=='Y'){
-				$curArr=['NAME'=>$ELEMENT['NAME'], 'RESPONSIBLE'=>'', 'STATUS'=>''];
+				$curArr=['ID'=>$ELEMENT['ID'], 'NAME'=>$ELEMENT['NAME'], 'RESPONSIBLE'=>'', 'STATUS'=>''];
 				$PROPs=\CIBlockElement::GetProperty($TASKs["IBLOCK_ID"], $ELEMENT['ID'], Array(), Array('CODE'=>'STATUS'));
 				$PROP=$PROPs->Fetch();
 				if(!empty($PROP['VALUE'])){
