@@ -382,7 +382,7 @@ class Main{
 		if(!empty($PARAMs['IBLOCK_ID'])){
 			$PROPs=\CIBlockPropertyEnum::GetList([], ['IBLOCK_ID'=>$PARAMs["IBLOCK_ID"], 'PROPERTY_CODE'=>'STATUS']);
 			while($PROP=$PROPs->Fetch()){
-				$STATUSEs[$PROP['ID']]=$PROP['VALUE'];
+				$STATUSEs[$PROP['ID']]=['NAME'=>$PROP['VALUE'], 'DEF'=>$PROP['DEF']];
 			}
 		}
 		

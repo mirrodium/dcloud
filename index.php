@@ -31,8 +31,9 @@ use Dcloud\TASKs\Main as Dcloud;?>
 				</ul>
 				<div class="tab-content" id="myTabContent">
 					<div class="tab-pane active" id="tasks" role="tabpanel" aria-labelledby="tasks-tab">
-						<?$USERs=DCloud::getUsers();
-						$TASKs=DCloud::getTasks($USERs['IBLOCK_ID']);
+						<?$USERs	=	DCloud::getUsers();
+						$TASKs		=	DCloud::getTasks($USERs['IBLOCK_ID']);
+						$STATUSEs	=	DCloud::getTasksStatuses(['IBLOCK_ID'=>$TASKs['IBLOCK_ID']]);
 						if(count($TASKs['TASKS'])==0){?>
 							<font color="#f00">Ещё нет ни одной задачи</font>
 						<?}else{
@@ -73,7 +74,9 @@ use Dcloud\TASKs\Main as Dcloud;?>
 							<br>
 							<label>Статус:</label><br>
 							<select name="status" required>
-								<??>
+								<?foreach($STATUSEs as $KEY=>$VALUE){?>
+									<option value="<?=$KEY?>"><?=$VALUE?></option>
+								<?}?>
 							</select>
 						</form>
 					</div>
