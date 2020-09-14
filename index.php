@@ -39,12 +39,51 @@ use Dcloud\TASKs\Main as Dcloud;?>
 						}?>
 						<div style="width: 100%;" align="right">
 							<br>
-							<button type="button" class="btn btn-lg btn-success">Добавить</button>
+							<button type="button" class="btn btn-lg btn-success" data-toggle="modal" data-target="#modalForTasks">Добавить</button>
 						</div>
 					</div>
 					<div class="tab-pane fade" id="users" role="tabpanel" aria-labelledby="users-tab">222222</div>
 				</div>
 			<?}?>
 		</div>
+		
+		<!--<Modal for Tasks>-->
+		<div class="modal fade" id="modalForTasks">
+			<div class="modal-dialog" role="document">
+				<div class="modal-content">
+					<div class="modal-header">
+						<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+							<span aria-hidden="true">&times;</span>
+						</button>
+						<h4 class="modal-title">Добавление задачи</h4>
+					</div>
+					<div class="modal-body">
+						<form method="post" action="ajax.php">
+							<input type="hidden" name="id" value=""/>
+							<label>Название:</label><input name="name" value="" required style="width: 100%"/>
+							<br>
+							<br>
+							<label>Исполнитель:</label><select name="user" required multiple style="width: 100%">
+								<option>Выберите исполнителя</option>
+								<?for($a=0; $a<count($USERs['USERS']); $a++){?>
+									<option value="<?=$USERs['USERS'][$a]['ID']?>"><?=$USERs['USERS'][$a]['NAME']?></option>
+								<?}?>
+							</select>
+							<br>
+							<br>
+							<label>Статус:</label><br>
+							<select name="status" required>
+								<??>
+							</select>
+						</form>
+					</div>
+					<div class="modal-footer">
+						<button type="button" class="btn btn-secondary" data-dismiss="modal">Отменить</button>
+						<button type="button" class="btn btn-primary">Сохранить</button>
+					</div>
+				</div>
+			</div>
+		</div>
+		<!--</Modal for Tasks>-->
 	</body>
 </html>

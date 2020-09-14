@@ -376,4 +376,16 @@ class Main{
 		}
 		return $MESSAGE;
 	}
+	
+	public static function getTasksStatuses($PARAMs){
+		$STATUSEs=[];
+		if(!empty($PARAMs['IBLOCK_ID'])){
+			$PROPs=\CIBlockPropertyEnum::GetList([], ['IBLOCK_ID'=>$PARAMs["IBLOCK_ID"], 'PROPERTY_CODE'=>'STATUS']);
+			while($PROP=$PROPs->Fetch()){
+				$STATUSEs[$PROP['ID']]=$PROP['VALUE'];
+			}
+		}
+		
+		return $STATUSEs;
+	}
 }?>
