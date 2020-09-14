@@ -160,8 +160,10 @@ class Main{
 					if(!\CIBlockElement::Delete($PARAMs['ID'])){
 						$strWarning.='Error!';
 						$DB->Rollback();
-					}else
+					}else{
 						$DB->Commit();
+					}
+					$MESSAGE="success";
 				}
 			}
 		}else{
@@ -256,7 +258,7 @@ class Main{
 		$ELEMENTs=\Bitrix\Iblock\ElementTable::getList(['filter'=>['IBLOCK_ID'=>$TASKs["IBLOCK_ID"]]]);
 		while($ELEMENT=$ELEMENTs->Fetch()){
 			if($ITEM['ACTIVE']=='Y'){
-				$curArr=['ID'=>$ELEMENT['ID'], 'NAME'=>$ELEMENT['NAME'], 'RESPONSIBLE'=>[], 'STATUS'=>''];
+				$curArr=['ID'=>$ELEMENT['ID'], 'NAME'=>$ELEMENT['NAME'], 'PREVIEW_TEXT'=>$ELEMENT['PREVIEW_TEXT'], 'RESPONSIBLE'=>[], 'STATUS'=>''];
 				$PROPs=\CIBlockElement::GetProperty($TASKs["IBLOCK_ID"], $ELEMENT['ID'], Array(), Array('CODE'=>'STATUS'));
 				$PROP=$PROPs->Fetch();
 				if(!empty($PROP['VALUE'])){
@@ -265,8 +267,15 @@ class Main{
 				
 				$PROPs=\CIBlockElement::GetProperty($TASKs["IBLOCK_ID"], $ELEMENT['ID'], Array(), Array('CODE'=>'RESPONSIBLE'));
 				while($PROP=$PROPs->Fetch()){
+					
 					if(!empty($PROP['VALUE'])){
-						$curArr['RESPONSIBLE'][]=$PROP['VALUE'];
+						$cName='';
+						$PROP_ENUMs=\Bitrix\Iblock\ElementTable::getList(['filter'=>['IBLOCK_ID'=>$usersIBLOCK_ID, 'ID'=>$PROP['VALUE']]]);
+						$PROP_ENUM=$PROP_ENUMs->Fetch();
+						if(!empty($PROP_ENUM['NAME'])){
+							$cName=$PROP_ENUM['NAME'];
+						}
+						$curArr['RESPONSIBLE'][$PROP['VALUE']]=$cName;
 					}
 				}
 				
@@ -288,6 +297,10 @@ class Main{
 				'NAME'				=>	$PARAMs['NAME'],
 				'PROPERTY_VALUES'	=> []
 			];
+			
+			if(!empty($PARAMs['PREVIEW_TEXT'])){
+				$FIELDS['PREVIEW_TEXT']=$PARAMs['PREVIEW_TEXT'];
+			}
 			
 			$FIELD_IDs=\Bitrix\Iblock\PropertyTable::getList(['filter'=>['CODE'=>'STATUS', 'IBLOCK_ID'=>$PARAMs["IBLOCK_ID"]]]);
 			$FIELD_ID=$FIELD_IDs->Fetch();
@@ -328,6 +341,10 @@ class Main{
 				'NAME'				=>	$PARAMs['NAME'],
 				'PROPERTY_VALUES'	=> []
 			];
+			
+			if(!empty($PARAMs['PREVIEW_TEXT'])){
+				$FIELDS['PREVIEW_TEXT']=$PARAMs['PREVIEW_TEXT'];
+			}
 			
 			$FIELD_IDs=\Bitrix\Iblock\PropertyTable::getList(['filter'=>['CODE'=>'STATUS', 'IBLOCK_ID'=>$PARAMs["IBLOCK_ID"]]]);
 			$FIELD_ID=$FIELD_IDs->Fetch();

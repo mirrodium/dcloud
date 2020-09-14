@@ -31,20 +31,111 @@ use Dcloud\TASKs\Main as Dcloud;?>
 					</li>
 				</ul>
 				<div class="tab-content" id="myTabContent">
-					<div class="tab-pane active" id="tasks" role="tabpanel" aria-labelledby="tasks-tab">
+					<div class="tab-pane fade" id="tasks" role="tabpanel" aria-labelledby="tasks-tab">
 						<?$USERs	=	DCloud::getUsers();
 						$TASKs		=	DCloud::getTasks($USERs['IBLOCK_ID']);
 						$STATUSEs	=	DCloud::getTasksStatuses(['IBLOCK_ID'=>$TASKs['IBLOCK_ID']]);
 						if(count($TASKs['TASKS'])==0){?>
 							<font color="#f00">Ещё нет ни одной задачи</font>
-						<?}else{
-						}?>
+						<?}else{?>
+							<table id="AddEditTaskTable" class="table table-striped">
+								<thead>
+									<tr>
+										<th>ИД</th>
+										<th>Название</th>
+										<th>Исполнитель</th>
+										<th>Статус</th>
+										<th>Действия</th>
+									</tr>
+								</thead>
+								<tbody>
+								</tbody>
+							</table>
+							<script>
+								<?for($a=0; $a<count($TASKs['TASKS']); $a++){
+									$USERS		=	'';
+									$USERS_IDS	=	'';
+									$INDEX		=	0;
+									foreach($TASKs['TASKS'][$a]['RESPONSIBLE'] as $ID=>$NAME){
+										if($INDEX>0){
+											$USERS.=', ';
+											$USERS_IDS.=',';
+										}
+										$USERS.=$NAME;
+										$USERS_IDS.=$ID;
+										$INDEX++;
+									}?>
+								
+									$.fn.AddTaskRow({
+										ID			:	'AddEditTaskTable',
+										IBLOCK_ID	:	'<?=$TASKs['IBLOCK_ID']?>',
+										ROW			:	{
+											ID			:	'<?=$TASKs['TASKS'][$a]['ID']?>',
+											NAME		:	'<?=$TASKs['TASKS'][$a]['NAME']?>',
+											USERS		:	'<?=$USERS?>',
+											USERS_IDS	:	'<?=$USERS_IDS?>',
+											STATUSEs	:	{
+												<?foreach($STATUSEs as $KEY=>$VALUE){
+													$SELECTED='N';
+													if($KEY==$TASKs['TASKS'][$a]['STATUS']){
+														$SELECTED='Y';
+													}?>
+													<?=$KEY?>:{
+														ID			:	'<?=$KEY?>',
+														NAME		:	'<?=$VALUE['NAME']?>',
+														SELECTED	:	'<?=$SELECTED?>'
+													},
+												<?}?>
+											},
+											DESCRIPTION	:	'<?=$TASKs['TASKS'][$a]['PREVIEW_TEXT']?>',
+										}
+									});
+								<?}?>
+							</script>
+						<?}?>
 						<div style="width: 100%;" align="right">
 							<br>
 							<button id="btnForTaskAdd" type="button" class="btn btn-lg btn-success" data-toggle="modal" data-target="#modalForTasks">Добавить</button>
 						</div>
 					</div>
-					<div class="tab-pane fade" id="users" role="tabpanel" aria-labelledby="users-tab">222222</div>
+					<div class="tab-pane active" id="users" role="tabpanel" aria-labelledby="users-tab">
+						<?if(count($USERs['USERS'])==0){?>
+							<font color="#f00">Ещё нет ни одного пользователя</font>
+						<?}else{?>
+							<table id="AddEditUserTable" class="table table-striped">
+								<thead>
+									<tr>
+										<th>ИД</th>
+										<th>Имя</th>
+										<th>Фамилия</th>
+										<th>Должность</th>
+										<th>Действия</th>
+									</tr>
+								</thead>
+								<tbody>
+								</tbody>
+							</table>
+							<script>
+								<?for($a=0; $a<count($USERs['USERS']); $a++){?>
+								
+									$.fn.AddUserRow({
+										ID			:	'AddEditUserTable',
+										IBLOCK_ID	:	'<?=$USERs['IBLOCK_ID']?>',
+										ROW			:	{
+											ID			:	'<?=$USERs['USERS'][$a]['ID']?>',
+											NAME		:	'<?=$USERs['USERS'][$a]['NAME']?>',
+											LAST_NAME	:	'<?=$USERs['USERS'][$a]['LAST_NAME']?>',
+											POST		:	'<?=$USERs['USERS'][$a]['POST']?>'
+										}
+									});
+								<?}?>
+							</script>
+						<?}?>
+						<div style="width: 100%;" align="right">
+							<br>
+							<button id="btnForUserAdd" type="button" class="btn btn-lg btn-success" data-toggle="modal" data-target="#modalForUsers">Добавить</button>
+						</div>
+					</div>
 				</div>
 			<?}?>
 		</div>
@@ -54,7 +145,7 @@ use Dcloud\TASKs\Main as Dcloud;?>
 			<div class="modal-dialog" role="document">
 				<div class="modal-content">
 					<div class="modal-header">
-						<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+						<button type="button" class="close" data-dismiss="modal" aria-label="Close" id="AddEditTaskClose">
 							<span aria-hidden="true">&times;</span>
 						</button>
 						<h4 class="modal-title">Добавление задачи</h4>
@@ -64,11 +155,12 @@ use Dcloud\TASKs\Main as Dcloud;?>
 							<input id="AddEditTaskID" type="hidden" name="id" value=""/>
 							<input id="AddEditTaskType" type="hidden" name="type" value=""/>
 							<input id="AddEditTaskIblock_Id" type="hidden" name="type" value="<?=$TASKs['IBLOCK_ID']?>"/>
-							<label>Название:</label><input id="AddEditTaskName" name="name" value="" required style="width: 100%"/>
+							<input id="AddEditTaskUsers_Iblock_ID" type="hidden" name="type" value="<?=$USERs['IBLOCK_ID']?>"/>
+							<label>Название:</label><input id="AddEditTaskName" name="name" required style="width: 100%"/>
 							<br>
 							<br>
-							<label>Исполнитель:</label><select id="AddEditTaskUser" name="user" required multiple style="width: 100%">
-								<option>Выберите исполнителя</option>
+							<label>Исполнитель:</label><select id="AddEditTaskUser" name="user" required multiple  style="width: 100%">
+								<option value="NULL">Выберите исполнителя</option>
 								<?for($a=0; $a<count($USERs['USERS']); $a++){?>
 									<option value="<?=$USERs['USERS'][$a]['ID']?>"><?=$USERs['USERS'][$a]['NAME']?></option>
 								<?}?>
@@ -89,6 +181,7 @@ use Dcloud\TASKs\Main as Dcloud;?>
 							<br>
 							<label>Описание:</label><br>
 							<textarea id="AddEditTaskDescription" name="desc" style="width: 100%"></textarea>
+							<div id="AddEditTaskError" hidden="hidden" style="color: #f00;"></div>
 						</form>
 					</div>
 					<div class="modal-footer">
@@ -99,5 +192,40 @@ use Dcloud\TASKs\Main as Dcloud;?>
 			</div>
 		</div>
 		<!--</Modal for Tasks>-->
+		
+		<!--<Modal for Users>-->
+		<div class="modal fade" id="modalForUsers">
+			<div class="modal-dialog" role="document">
+				<div class="modal-content">
+					<div class="modal-header">
+						<button type="button" class="close" data-dismiss="modal" aria-label="Close" id="AddEditUserClose">
+							<span aria-hidden="true">&times;</span>
+						</button>
+						<h4 class="modal-title">Добавление пользователя</h4>
+					</div>
+					<div class="modal-body">
+						<form id="AddEditUser" method="post" action="ajax.php">
+							<input id="AddEditUserID" type="hidden" name="id" value=""/>
+							<input id="AddEditUserType" type="hidden" name="type" value=""/>
+							<input id="AddEditUserIblock_Id" type="hidden" name="type" value="<?=$USERs['IBLOCK_ID']?>"/>
+							<input id="AddEditUserTasks_Iblock_ID" type="hidden" name="type" value="<?=$TASKs['IBLOCK_ID']?>"/>
+							<label>Имя:</label><input id="AddEditUserName" name="name" required style="width: 100%"/>
+							<br>
+							<br>
+							<label>Фамилия:</label><input id="AddEditUserLastName" name="last_name" style="width: 100%"/>
+							<br>
+							<br>
+							<label>Должность:</label><input id="AddEditUserPost" name="post" required style="width: 100%"/>
+							<div id="AddEditUserError" hidden="hidden" style="color: #f00;"></div>
+						</form>
+					</div>
+					<div class="modal-footer">
+						<button type="button" class="btn btn-secondary" data-dismiss="modal">Отменить</button>
+						<button type="button" class="btn btn-primary" onClick="$.fn.AddEditUser('AddEditUser')">Сохранить</button>
+					</div>
+				</div>
+			</div>
+		</div>
+		<!--</Modal for Users>-->
 	</body>
 </html>
