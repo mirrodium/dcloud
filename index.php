@@ -60,13 +60,14 @@ use Dcloud\TASKs\Main as Dcloud;?>
 						<h4 class="modal-title">Добавление задачи</h4>
 					</div>
 					<div class="modal-body">
-						<form method="post" action="ajax.php">
-							<input id="modalForTasksID" type="hidden" name="id" value=""/>
-							<input id="modalForTasksType" type="hidden" name="type" value=""/>
-							<label>Название:</label><input name="name" value="" required style="width: 100%"/>
+						<form id="AddEditTask" method="post" action="ajax.php">
+							<input id="AddEditTaskID" type="hidden" name="id" value=""/>
+							<input id="AddEditTaskType" type="hidden" name="type" value=""/>
+							<input id="AddEditTaskIblock_Id" type="hidden" name="type" value="<?=$TASKs['IBLOCK_ID']?>"/>
+							<label>Название:</label><input id="AddEditTaskName" name="name" value="" required style="width: 100%"/>
 							<br>
 							<br>
-							<label>Исполнитель:</label><select name="user" required multiple style="width: 100%">
+							<label>Исполнитель:</label><select id="AddEditTaskUser" name="user" required multiple style="width: 100%">
 								<option>Выберите исполнителя</option>
 								<?for($a=0; $a<count($USERs['USERS']); $a++){?>
 									<option value="<?=$USERs['USERS'][$a]['ID']?>"><?=$USERs['USERS'][$a]['NAME']?></option>
@@ -75,7 +76,7 @@ use Dcloud\TASKs\Main as Dcloud;?>
 							<br>
 							<br>
 							<label>Статус:</label><br>
-							<select name="status" required>
+							<select id="AddEditTaskStatus" name="status" required>
 								<?foreach($STATUSEs as $KEY=>$VALUE){
 									$SELECTED='';
 									if($VALUE['DEF']=="Y"){
@@ -84,11 +85,15 @@ use Dcloud\TASKs\Main as Dcloud;?>
 									<option value="<?=$KEY?>" <?=$SELECTED?>><?=$VALUE['NAME']?></option>
 								<?}?>
 							</select>
+							<br>
+							<br>
+							<label>Описание:</label><br>
+							<textarea id="AddEditTaskDescription" name="desc" style="width: 100%"></textarea>
 						</form>
 					</div>
 					<div class="modal-footer">
 						<button type="button" class="btn btn-secondary" data-dismiss="modal">Отменить</button>
-						<button type="button" class="btn btn-primary">Сохранить</button>
+						<button type="button" class="btn btn-primary" onClick="$.fn.AddEditTask('AddEditTask')">Сохранить</button>
 					</div>
 				</div>
 			</div>
