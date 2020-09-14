@@ -31,26 +31,27 @@ use Dcloud\TASKs\Main as Dcloud;?>
 					</li>
 				</ul>
 				<div class="tab-content" id="myTabContent">
-					<div class="tab-pane fade" id="tasks" role="tabpanel" aria-labelledby="tasks-tab">
+					<div class="tab-pane active" id="tasks" role="tabpanel" aria-labelledby="tasks-tab">
+						<table id="AddEditTaskTable" class="table table-striped">
+							<thead>
+								<tr>
+									<th>ИД</th>
+									<th>Название</th>
+									<th>Исполнитель</th>
+									<th>Статус</th>
+									<th>Действия</th>
+								</tr>
+							</thead>
+							<tbody>
+							</tbody>
+						</table>
 						<?$USERs	=	DCloud::getUsers();
 						$TASKs		=	DCloud::getTasks($USERs['IBLOCK_ID']);
 						$STATUSEs	=	DCloud::getTasksStatuses(['IBLOCK_ID'=>$TASKs['IBLOCK_ID']]);
-						if(count($TASKs['TASKS'])==0){?>
-							<font color="#f00">Ещё нет ни одной задачи</font>
-						<?}else{?>
-							<table id="AddEditTaskTable" class="table table-striped">
-								<thead>
-									<tr>
-										<th>ИД</th>
-										<th>Название</th>
-										<th>Исполнитель</th>
-										<th>Статус</th>
-										<th>Действия</th>
-									</tr>
-								</thead>
-								<tbody>
-								</tbody>
-							</table>
+						$uHidden	=	'';
+						$tHidden	=	'';
+						if(count($TASKs['TASKS'])>0){
+							$tHidden	=	'hidden="hidden"';?>
 							<script>
 								<?for($a=0; $a<count($TASKs['TASKS']); $a++){
 									$USERS		=	'';
@@ -93,28 +94,28 @@ use Dcloud\TASKs\Main as Dcloud;?>
 								<?}?>
 							</script>
 						<?}?>
+						<font color="#f00" id="AddEditTaskTableError" <?=$tHidden?>>Ещё нет ни одной задачи</font>
 						<div style="width: 100%;" align="right">
 							<br>
 							<button id="btnForTaskAdd" type="button" class="btn btn-lg btn-success" data-toggle="modal" data-target="#modalForTasks">Добавить</button>
 						</div>
 					</div>
-					<div class="tab-pane active" id="users" role="tabpanel" aria-labelledby="users-tab">
-						<?if(count($USERs['USERS'])==0){?>
-							<font color="#f00">Ещё нет ни одного пользователя</font>
-						<?}else{?>
-							<table id="AddEditUserTable" class="table table-striped">
-								<thead>
-									<tr>
-										<th>ИД</th>
-										<th>Имя</th>
-										<th>Фамилия</th>
-										<th>Должность</th>
-										<th>Действия</th>
-									</tr>
-								</thead>
-								<tbody>
-								</tbody>
-							</table>
+					<div class="tab-pane fade" id="users" role="tabpanel" aria-labelledby="users-tab">
+						<table id="AddEditUserTable" class="table table-striped">
+							<thead>
+								<tr>
+									<th>ИД</th>
+									<th>Имя</th>
+									<th>Фамилия</th>
+									<th>Должность</th>
+									<th>Действия</th>
+								</tr>
+							</thead>
+							<tbody>
+							</tbody>
+						</table>
+						<?if(count($USERs['USERS'])>0){
+							$uHidden	=	'hidden="hidden"';?>
 							<script>
 								<?for($a=0; $a<count($USERs['USERS']); $a++){?>
 								
@@ -131,6 +132,7 @@ use Dcloud\TASKs\Main as Dcloud;?>
 								<?}?>
 							</script>
 						<?}?>
+						<font color="#f00" id="AddEditUserTableError" <?=$uHidden?>>Ещё нет ни одного пользователя</font>
 						<div style="width: 100%;" align="right">
 							<br>
 							<button id="btnForUserAdd" type="button" class="btn btn-lg btn-success" data-toggle="modal" data-target="#modalForUsers">Добавить</button>
@@ -160,7 +162,6 @@ use Dcloud\TASKs\Main as Dcloud;?>
 							<br>
 							<br>
 							<label>Исполнитель:</label><select id="AddEditTaskUser" name="user" required multiple  style="width: 100%">
-								<option value="NULL">Выберите исполнителя</option>
 								<?for($a=0; $a<count($USERs['USERS']); $a++){?>
 									<option value="<?=$USERs['USERS'][$a]['ID']?>"><?=$USERs['USERS'][$a]['NAME']?></option>
 								<?}?>

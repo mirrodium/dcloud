@@ -2,11 +2,19 @@ $(document).ready(function(){
 	$('#btnForTaskAdd').on('click', function(){
 		$('#AddEditTaskID').val(0);
 		$('#AddEditTaskType').val('add');
+		$('#AddEditTaskName').val('');
+		$('#AddEditTaskDescription').val('');
+		$('#AddEditTaskUser option').removeAttr("selected");
+		$('#AddEditTaskStatus option').removeAttr("selected");
+		$('#AddEditTaskStatus option:contains("Открыта")').attr("selected", "selected");
 	});
 	
 	$('#btnForUserAdd').on('click', function(){
 		$('#AddEditUserID').val(0);
 		$('#AddEditUserType').val('add');
+		$('#AddEditUserName').val('');
+		$('#AddEditUserLastName').val('');
+		$('#AddEditUserPost').val('');
 	});
 });
 
@@ -65,6 +73,12 @@ $.fn.AddEditTask=function(ID){
 					if($('#'+ID+'Table').length){
 						$('#'+ID+'Table tbody').empty();
 						$.fn.parseResponseForTasks(ID, DATAs);
+					}
+					
+					$('#'+ID+'TableError').hide();
+					
+					if(DATAs['TASKS'].length==0){
+						$('#'+ID+'TableError').show();
 					}
 				}
 			}
@@ -230,6 +244,11 @@ $.fn.AddEditUser=function(ID){
 						$('#'+ID+'Table tbody').empty();
 						$.fn.parseResponseForUsers(ID, DATAs);
 					}
+					$('#'+ID+'TableError').hide();
+					
+					if(DATAs['USERS'].length==0){
+						$('#'+ID+'TableError').show();
+					}
 				}
 			}
 		});	
@@ -237,6 +256,9 @@ $.fn.AddEditUser=function(ID){
 }
 
 $.fn.parseResponseForUsers=function(ID, DATAs){
+	if($('#AddEditTaskUser').length){
+		$('#AddEditTaskUser').empty();
+	}
 	for(var a=0; a<DATAs['USERS'].length; a++){					
 		$.fn.AddUserRow({
 			ID			:	ID+'Table',
@@ -248,6 +270,10 @@ $.fn.parseResponseForUsers=function(ID, DATAs){
 				POST		:	DATAs['USERS'][a]['POST']
 			}
 		});
+
+		if($('#AddEditTaskUser').length){
+			$('#AddEditTaskUser').append('<option value="'+DATAs['USERS'][a]['ID']+'">'+DATAs['USERS'][a]['NAME']+'</option>');
+		}
 	}
 }
 
