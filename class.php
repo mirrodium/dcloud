@@ -256,7 +256,7 @@ class Main{
 		$ELEMENTs=\Bitrix\Iblock\ElementTable::getList(['filter'=>['IBLOCK_ID'=>$TASKs["IBLOCK_ID"]]]);
 		while($ELEMENT=$ELEMENTs->Fetch()){
 			if($ITEM['ACTIVE']=='Y'){
-				$curArr=['ID'=>$ELEMENT['ID'], 'NAME'=>$ELEMENT['NAME'], 'RESPONSIBLE'=>'', 'STATUS'=>''];
+				$curArr=['ID'=>$ELEMENT['ID'], 'NAME'=>$ELEMENT['NAME'], 'RESPONSIBLE'=>[], 'STATUS'=>''];
 				$PROPs=\CIBlockElement::GetProperty($TASKs["IBLOCK_ID"], $ELEMENT['ID'], Array(), Array('CODE'=>'STATUS'));
 				$PROP=$PROPs->Fetch();
 				if(!empty($PROP['VALUE'])){
@@ -264,9 +264,10 @@ class Main{
 				}
 				
 				$PROPs=\CIBlockElement::GetProperty($TASKs["IBLOCK_ID"], $ELEMENT['ID'], Array(), Array('CODE'=>'RESPONSIBLE'));
-				$PROP=$PROPs->Fetch();
-				if(!empty($PROP['VALUE'])){
-					$curArr['RESPONSIBLE']=$PROP['VALUE'];
+				while($PROP=$PROPs->Fetch()){
+					if(!empty($PROP['VALUE'])){
+						$curArr['RESPONSIBLE'][]=$PROP['VALUE'];
+					}
 				}
 				
 				$TASKs["TASKS"][]=$curArr;
@@ -274,5 +275,105 @@ class Main{
 		}
 		
 		return $TASKs;
+	}
+	
+	public static function addTask($PARAMs){
+		global $USER;
+		$MESSAGE="error";
+		if(!empty($PARAMs['IBLOCK_ID']) and !empty($PARAMs['NAME']) and !empty($PARAMs['STATUS']) and !empty($PARAMs['RESPONSIBLE'])){
+			$ELEMENTs=new \CIBlockElement;
+			$FIELDS=[
+				'MODIFIED_BY'		=>	$USER->GetID(),
+				'IBLOCK_ID'			=>	$PARAMs["IBLOCK_ID"],
+				'NAME'				=>	$PARAMs['NAME'],
+				'PROPERTY_VALUES'	=> []
+			];
+			
+			$FIELD_IDs=\Bitrix\Iblock\PropertyTable::getList(['filter'=>['CODE'=>'STATUS', 'IBLOCK_ID'=>$PARAMs["IBLOCK_ID"]]]);
+			$FIELD_ID=$FIELD_IDs->Fetch();
+			if(!empty($FIELD_ID['ID'])){
+				$FIELDS['PROPERTY_VALUES'][$FIELD_ID['ID']]=$PARAMs['STATUS'];
+			}
+			
+			$FIELD_IDs=\Bitrix\Iblock\PropertyTable::getList(['filter'=>['CODE'=>'RESPONSIBLE', 'IBLOCK_ID'=>$PARAMs["IBLOCK_ID"]]]);
+			$FIELD_ID=$FIELD_IDs->Fetch();
+			if(!empty($FIELD_ID['ID'])){
+				$FIELDS['PROPERTY_VALUES'][$FIELD_ID['ID']]=$PARAMs['RESPONSIBLE'];
+			}
+			
+			$FIELD_IDs=\Bitrix\Iblock\PropertyTable::getList(['filter'=>['CODE'=>'STATUS', 'IBLOCK_ID'=>$PARAMs["IBLOCK_ID"]]]);
+			$FIELD_ID=$FIELD_IDs->Fetch();
+			if(!empty($FIELD_ID['ID'])){
+				$FIELDS['PROPERTY_VALUES'][$FIELD_ID['ID']]=$PARAMs['STATUS'];
+			}
+			
+			$ELEMENTs->Add($FIELDS);
+			if(empty($ELEMENTs->LAST_ERROR)){
+				$MESSAGE='success';
+			}
+		}else{
+			$MESSAGE="any params not found";
+		}
+		return $MESSAGE;
+	}
+	
+	public static function editTask($PARAMs){
+		global $USER;
+		$MESSAGE="error";
+		if(!empty($PARAMs['IBLOCK_ID']) and !empty($PARAMs['ID']) and !empty($PARAMs['NAME']) and !empty($PARAMs['STATUS']) and !empty($PARAMs['RESPONSIBLE'])){
+			$ELEMENTs=new \CIBlockElement;
+			$FIELDS=[
+				'MODIFIED_BY'		=>	$USER->GetID(),
+				'IBLOCK_ID'			=>	$PARAMs["IBLOCK_ID"],
+				'NAME'				=>	$PARAMs['NAME'],
+				'PROPERTY_VALUES'	=> []
+			];
+			
+			$FIELD_IDs=\Bitrix\Iblock\PropertyTable::getList(['filter'=>['CODE'=>'STATUS', 'IBLOCK_ID'=>$PARAMs["IBLOCK_ID"]]]);
+			$FIELD_ID=$FIELD_IDs->Fetch();
+			if(!empty($FIELD_ID['ID'])){
+				$FIELDS['PROPERTY_VALUES'][$FIELD_ID['ID']]=$PARAMs['STATUS'];
+			}
+			
+			$FIELD_IDs=\Bitrix\Iblock\PropertyTable::getList(['filter'=>['CODE'=>'RESPONSIBLE', 'IBLOCK_ID'=>$PARAMs["IBLOCK_ID"]]]);
+			$FIELD_ID=$FIELD_IDs->Fetch();
+			if(!empty($FIELD_ID['ID'])){
+				$FIELDS['PROPERTY_VALUES'][$FIELD_ID['ID']]=$PARAMs['RESPONSIBLE'];
+			}
+			
+			$FIELD_IDs=\Bitrix\Iblock\PropertyTable::getList(['filter'=>['CODE'=>'STATUS', 'IBLOCK_ID'=>$PARAMs["IBLOCK_ID"]]]);
+			$FIELD_ID=$FIELD_IDs->Fetch();
+			if(!empty($FIELD_ID['ID'])){
+				$FIELDS['PROPERTY_VALUES'][$FIELD_ID['ID']]=$PARAMs['STATUS'];
+			}
+			
+			$ELEMENTs->Update($PARAMs['ID'], $FIELDS);
+			if(empty($ELEMENTs->LAST_ERROR)){
+				$MESSAGE='success';
+			}
+		}else{
+			$MESSAGE="any params not found";
+		}
+		
+		return $MESSAGE;
+	}
+	
+	public static function deleteTask($PARAMs){
+		global $DB;
+		$MESSAGE="error";
+		if(!empty($PARAMs['IBLOCK_ID']) and !empty($PARAMs['ID'])){
+			if(\CIBlock::GetPermission($PARAMs['IBLOCK_ID'])>='W'){
+				$DB->StartTransaction();
+				if(!\CIBlockElement::Delete($PARAMs['ID'])){
+					$strWarning.='Error!';
+					$DB->Rollback();
+				}else{
+					$DB->Commit();
+				}
+			}
+		}else{
+			$MESSAGE="any params not found";
+		}
+		return $MESSAGE;
 	}
 }?>
